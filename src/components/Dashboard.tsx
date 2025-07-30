@@ -2,12 +2,18 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import UploadForm from './UploadForm';
 import DocumentList from './DocumentList';
+import ConfirmationModal from './ConfirmationModal';
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'upload' | 'documents'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload' | 'documents'>('documents');
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const handleLogout = async () => {
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutConfirm = async () => {
     try {
       await logout();
     } catch (error) {
@@ -49,7 +55,7 @@ const Dashboard: React.FC = () => {
 
               {/* Logout Button */}
               <button
-                onClick={handleLogout}
+                onClick={handleLogoutClick}
                 className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg border border-white/20 transition-all duration-200 hover:scale-105"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,19 +73,6 @@ const Dashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-1">
             <button
-              onClick={() => setActiveTab('upload')}
-              className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm rounded-t-lg transition-all duration-200 ${
-                activeTab === 'upload'
-                  ? 'bg-red-50 text-[#800000] border-b-2 border-[#800000]'
-                  : 'text-gray-600 hover:text-[#800000] hover:bg-gray-50'
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-              <span>Upload Document</span>
-            </button>
-            <button
               onClick={() => setActiveTab('documents')}
               className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm rounded-t-lg transition-all duration-200 ${
                 activeTab === 'documents'
@@ -91,6 +84,19 @@ const Dashboard: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
               <span>Document Library</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('upload')}
+              className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm rounded-t-lg transition-all duration-200 ${
+                activeTab === 'upload'
+                  ? 'bg-red-50 text-[#800000] border-b-2 border-[#800000]'
+                  : 'text-gray-600 hover:text-[#800000] hover:bg-gray-50'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <span>Upload Document</span>
             </button>
           </div>
         </div>
@@ -106,6 +112,18 @@ const Dashboard: React.FC = () => {
           <DocumentList />
         )}
       </main>
+
+      {/* Logout Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogoutConfirm}
+        title="Confirm Logout"
+        message="Are you sure you want to logout? You will need to sign in again to access the system."
+        confirmText="Logout"
+        cancelText="Cancel"
+        confirmColor="bg-[#800000] hover:bg-[#600000]"
+      />
     </div>
   );
 };
