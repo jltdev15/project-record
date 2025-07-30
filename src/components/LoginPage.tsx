@@ -52,11 +52,12 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center">
+      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border border-gray-200">
         <div className="text-center mb-8">
+          <img src="/logo.png" alt="DHVSU Logo" className="w-16 h-16 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Document Record Management
+            DHVSU Record Management System
           </h1>
           <p className="text-gray-600">
             {isSignUp ? 'Create an admin account' : 'Sign in to access your documents'}
@@ -81,7 +82,7 @@ const LoginPage: React.FC = () => {
               required
               value={formData.email}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent"
               placeholder="admin@example.com"
             />
           </div>
@@ -98,7 +99,7 @@ const LoginPage: React.FC = () => {
                 required
                 value={formData.displayName}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent"
                 placeholder="Admin Name"
               />
             </div>
@@ -115,7 +116,7 @@ const LoginPage: React.FC = () => {
               required
               value={formData.password}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent"
               placeholder="••••••••"
             />
           </div>
@@ -132,7 +133,7 @@ const LoginPage: React.FC = () => {
                 required
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent"
                 placeholder="••••••••"
               />
             </div>
@@ -141,7 +142,7 @@ const LoginPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-[#800000] text-white py-2 px-4 rounded-md hover:bg-[#600000] focus:outline-none focus:ring-2 focus:ring-[#800000] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
           </button>
@@ -160,7 +161,7 @@ const LoginPage: React.FC = () => {
                 confirmPassword: ''
               });
             }}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            className="text-[#800000] hover:text-[#600000] text-sm font-medium"
           >
             {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Create one'}
           </button>
