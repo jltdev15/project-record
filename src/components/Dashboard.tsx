@@ -18,7 +18,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg">
+      <header className="bg-gradient-to-r from-[#800000] to-[#600000] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo and Title */}
@@ -32,7 +32,7 @@ const Dashboard: React.FC = () => {
                 <h1 className="text-2xl font-bold text-white">
                   DocuManager
                 </h1>
-                <p className="text-blue-100 text-sm">
+                <p className="text-red-100 text-sm">
                   Record Management System
                 </p>
               </div>
@@ -42,19 +42,10 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center space-x-6">
               {/* Welcome Message */}
               <div className="hidden md:block text-right">
-                <p className="text-blue-100 text-sm">Welcome back,</p>
+                <p className="text-red-100 text-sm">Welcome back,</p>
                 <p className="text-white font-medium">{user?.displayName}</p>
               </div>
 
-              {/* User Avatar */}
-              <div className="relative">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30">
-                  <span className="text-white text-lg font-bold">
-                    {user?.displayName?.charAt(0).toUpperCase() || 'A'}
-                  </span>
-                </div>
-  
-              </div>
 
               {/* Logout Button */}
               <button
@@ -79,8 +70,8 @@ const Dashboard: React.FC = () => {
               onClick={() => setActiveTab('upload')}
               className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm rounded-t-lg transition-all duration-200 ${
                 activeTab === 'upload'
-                  ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                  ? 'bg-red-50 text-[#800000] border-b-2 border-[#800000]'
+                  : 'text-gray-600 hover:text-[#800000] hover:bg-gray-50'
               }`}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,8 +83,8 @@ const Dashboard: React.FC = () => {
               onClick={() => setActiveTab('documents')}
               className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm rounded-t-lg transition-all duration-200 ${
                 activeTab === 'documents'
-                  ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                  ? 'bg-red-50 text-[#800000] border-b-2 border-[#800000]'
+                  : 'text-gray-600 hover:text-[#800000] hover:bg-gray-50'
               }`}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
