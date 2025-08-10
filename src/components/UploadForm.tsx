@@ -19,7 +19,6 @@ const UploadForm: React.FC = () => {
 
   const documentTypes = [
     'Memorandum',
-
   ];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {

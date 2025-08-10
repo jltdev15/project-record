@@ -7,7 +7,7 @@ export class DocumentService {
   // Upload document to Firebase Storage
   static async uploadDocument(
     file: File,
-    metadata: Omit<Document, 'id' | 'fileUrl' | 'fileName' | 'fileSize' | 'uploadedAt' | 'uploadedBy'>,
+    metadata: Omit<Document, 'id' | 'fileUrl' | 'fileName' | 'fileSize' | 'uploadedAt' | 'uploadedBy' | 'storagePath'>,
     user: { uid: string; displayName: string },
     onProgress?: (progress: UploadProgress) => void
   ): Promise<string> {
@@ -47,13 +47,19 @@ export class DocumentService {
           try {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
             
+            // Get the actual storage path from the Firebase Storage reference
+            // The fullPath property gives us the path relative to the bucket root
+            const actualStoragePath = uploadTask.snapshot.ref.fullPath;
+            console.log('Upload completed. Storage path:', actualStoragePath);
+            
             const documentData: Omit<Document, 'id'> = {
               ...metadata,
               fileUrl: downloadURL,
               fileName: file.name,
               fileSize: file.size,
               uploadedAt: new Date().toISOString(),
-              uploadedBy: user.displayName
+              uploadedBy: user.displayName,
+              storagePath: actualStoragePath // Use the actual storage path from Firebase
             };
 
             const docRef = await push(dbRef(database, 'documents'), documentData);
@@ -163,15 +169,116 @@ export class DocumentService {
     }
   }
 
+  // Get correct storage path for a document (for migration purposes)
+  static getStoragePath(document: Document): string {
+    if (document.storagePath) {
+      return document.storagePath;
+    }
+    
+    // Fallback: construct the path from fileName and uploadedAt
+    const timestamp = document.uploadedAt ? new Date(document.uploadedAt).getTime() : Date.now();
+    const sanitizedFileName = document.fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    return `documents/${timestamp}_${sanitizedFileName}`;
+  }
+
+  // Migrate existing documents to include storagePath
+  static async migrateDocuments(): Promise<void> {
+    try {
+      const documents = await this.getDocuments();
+      const updates: Promise<void>[] = [];
+      
+      for (const document of documents) {
+        if (!document.storagePath) {
+          const storagePath = this.getStoragePath(document);
+          updates.push(this.updateDocument(document.id, { storagePath }));
+        }
+      }
+      
+      if (updates.length > 0) {
+        await Promise.all(updates);
+        console.log(`Migrated ${updates.length} documents`);
+      }
+    } catch (error) {
+      console.error('Error migrating documents:', error);
+      throw error;
+    }
+  }
+
+  // Verify if a storage path exists
+  static async verifyStoragePath(storagePath: string): Promise<boolean> {
+    try {
+      const storageRef = ref(storage, storagePath);
+      await getDownloadURL(storageRef);
+      return true;
+    } catch (error) {
+      console.log('Storage path verification failed:', storagePath, error);
+      return false;
+    }
+  }
+
+  // List all files in documents folder (for debugging)
+  static async listStorageFiles(): Promise<string[]> {
+    try {
+      const listRef = ref(storage, 'documents');
+      // Note: This requires Firebase Storage Rules to allow listing
+      // For now, we'll just return an empty array if listing fails
+      return [];
+    } catch (error) {
+      console.log('Cannot list storage files (likely due to security rules):', error);
+      return [];
+    }
+  }
+
   // Delete document
   static async deleteDocument(document: Document): Promise<void> {
-    // Delete from Storage
-    const storageRef = ref(storage, `documents/${document.fileName}`);
-    await deleteObject(storageRef);
-    
-    // Delete from Database
-    const documentRef = dbRef(database, `documents/${document.id}`);
-    await remove(documentRef);
+    try {
+      // Delete from Storage using the correct storage path
+      const storagePath = this.getStoragePath(document);
+      console.log('Deleting document from storage:', {
+        documentId: document.id,
+        fileName: document.fileName,
+        storagePath: storagePath,
+        hasStoragePath: !!document.storagePath,
+        originalStoragePath: document.storagePath,
+        fullDocument: document
+      });
+      
+      // Verify the storage path exists before attempting deletion
+      const pathExists = await this.verifyStoragePath(storagePath);
+      if (!pathExists) {
+        console.warn('Storage path does not exist:', storagePath);
+        // Try alternative paths
+        const alternativePaths = [
+          `documents/${document.fileName}`,
+          `documents/${document.fileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`,
+          `documents/${document.id}_${document.fileName}`
+        ];
+        
+        for (const altPath of alternativePaths) {
+          console.log('Trying alternative path:', altPath);
+          if (await this.verifyStoragePath(altPath)) {
+            console.log('Found file at alternative path:', altPath);
+            const storageRef = ref(storage, altPath);
+            await deleteObject(storageRef);
+            console.log('Successfully deleted from alternative path:', altPath);
+            break;
+          }
+        }
+      } else {
+        const storageRef = ref(storage, storagePath);
+        console.log('Storage reference created with path:', storageRef.fullPath);
+        await deleteObject(storageRef);
+        console.log('Successfully deleted from storage:', storagePath);
+      }
+      
+      // Delete from Database
+      const documentRef = dbRef(database, `documents/${document.id}`);
+      await remove(documentRef);
+      console.log('Successfully deleted from database:', document.id);
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      throw error;
+    }
   }
 
   // Update document metadata

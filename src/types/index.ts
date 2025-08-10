@@ -10,6 +10,7 @@ export interface Document {
   fileSize: number;
   uploadedAt: string;
   uploadedBy: string;
+  storagePath: string; // Add this field to store the actual storage path
 }
 
 export interface User {
