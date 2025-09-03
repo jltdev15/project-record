@@ -36,7 +36,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">
-                  DHVS Document Management System
+                  PAMSU Lubao Campus Document Management System
                 </h1>
                 <p className="text-red-100 text-sm">
                   Record Management System

@@ -57,7 +57,7 @@ const LoginPage: React.FC = () => {
         <div className="text-center mb-8">
           <img src="/logo.png" alt="DHVSU Logo" className="w-16 h-16 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            DHVSU Record Management System
+            PAMSU Lubao Campus Record Management System
           </h1>
           <p className="text-gray-600">
             {isSignUp ? 'Create an admin account' : 'Sign in to access your documents'}
