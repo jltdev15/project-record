@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage: React.FC = () => {
   const { signIn, signUp } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -148,7 +148,7 @@ const LoginPage: React.FC = () => {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        {/* <div className="mt-6 text-center">
           <button
             type="button"
             onClick={() => {
@@ -165,7 +165,7 @@ const LoginPage: React.FC = () => {
           >
             {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Create one'}
           </button>
-        </div>
+        </div> */}
 
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-500">

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Document } from '../types';
 import DocumentPreview from './DocumentPreview';
+import { ref, getDownloadURL } from 'firebase/storage';
+import { storage } from '../firebase/config';
 
 interface DocumentCardProps {
   document: Document;
@@ -9,6 +11,7 @@ interface DocumentCardProps {
 
 const DocumentCard: React.FC<DocumentCardProps> = ({ document, onDelete }) => {
   const [showPreview, setShowPreview] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -48,14 +51,32 @@ const DocumentCard: React.FC<DocumentCardProps> = ({ document, onDelete }) => {
     }
   };
 
-  const handleDownload = () => {
-    const link = window.document.createElement('a');
-    link.href = document.fileUrl;
-    link.download = document.fileName;
-    window.document.body.appendChild(link);
-    link.click();
-    window.document.body.removeChild(link);
-  };
+const handleDownload = async () => {
+  if (isDownloading) return;
+  setIsDownloading(true);
+
+  try {
+    // Get a fresh download URL from Firebase Storage
+    const storageRef = ref(storage, document.storagePath);
+    const downloadURL = await getDownloadURL(storageRef);
+    
+    // Open in new tab - this is more reliable than forcing download
+    window.open(downloadURL, '_blank');
+  } catch (error) {
+    console.error("Download failed:", error);
+    
+    // Fallback to stored URL
+    try {
+      window.open(document.fileUrl, '_blank');
+    } catch (fallbackError) {
+      console.error("Fallback also failed:", fallbackError);
+      alert('Failed to open file. Please try again.');
+    }
+  } finally {
+    setIsDownloading(false);
+  }
+};
+
 
   return (
     <>
@@ -85,12 +106,23 @@ const DocumentCard: React.FC<DocumentCardProps> = ({ document, onDelete }) => {
             </button>
             <button
               onClick={handleDownload}
-              className="text-green-600 hover:text-green-800 p-1"
-              title="Download"
+              disabled={isDownloading}
+              className={`p-1 transition-colors ${
+                isDownloading 
+                  ? 'text-gray-400 cursor-not-allowed' 
+                  : 'text-green-600 hover:text-green-800'
+              }`}
+              title={isDownloading ? 'Downloading...' : 'Download'}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+              {isDownloading ? (
+                <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              )}
             </button>
             <button
               onClick={() => onDelete(document)}

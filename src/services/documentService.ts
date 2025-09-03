@@ -219,7 +219,6 @@ export class DocumentService {
   // List all files in documents folder (for debugging)
   static async listStorageFiles(): Promise<string[]> {
     try {
-      const listRef = ref(storage, 'documents');
       // Note: This requires Firebase Storage Rules to allow listing
       // For now, we'll just return an empty array if listing fails
       return [];

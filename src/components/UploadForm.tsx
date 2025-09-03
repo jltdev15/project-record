@@ -24,10 +24,18 @@ const UploadForm: React.FC = () => {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Check file type
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      // Check file type - now including Word and Excel files
+      const allowedTypes = [
+        'application/pdf',
+        'image/jpeg',
+        'image/png',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+        'application/msword', // .doc
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+        'application/vnd.ms-excel' // .xls
+      ];
       if (!allowedTypes.includes(file.type)) {
-        alert('Please select a PDF, JPG, or PNG file.');
+        alert('Please select a PDF, JPG, PNG, Word (.doc/.docx), or Excel (.xls/.xlsx) file.');
         return;
       }
       setSelectedFile(file);
@@ -89,12 +97,12 @@ const UploadForm: React.FC = () => {
         {/* File Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Document (PDF, JPG, PNG)
+            Select Document (PDF, JPG, PNG, Word, Excel)
           </label>
           <input
             ref={fileInputRef}
             type="file"
-            accept=".pdf,.jpg,.jpeg,.png"
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
             onChange={handleFileSelect}
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             required
