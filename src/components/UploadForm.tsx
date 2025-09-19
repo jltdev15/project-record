@@ -9,6 +9,7 @@ const UploadForm: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isProcessingOCR, setIsProcessingOCR] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -40,6 +41,9 @@ const UploadForm: React.FC = () => {
         return;
       }
       setSelectedFile(file);
+      
+      // Reset OCR state when new file is selected
+      setIsProcessingOCR(false);
     }
   };
 
@@ -59,12 +63,23 @@ const UploadForm: React.FC = () => {
     setIsUploading(true);
     setUploadProgress({ progress: 0, state: 'pending' });
 
+    // Check if file is likely to need OCR processing (but don't show modal yet)
+    const isLargePDF = selectedFile.type === 'application/pdf' && selectedFile.size > 10 * 1024 * 1024; // 10MB+
+    const isImage = selectedFile.type.startsWith('image/');
+    const needsOCR = isLargePDF || isImage;
+
     try {
       await DocumentService.uploadDocument(
         selectedFile,
         formData,
         { uid: user.uid, displayName: user.displayName },
-        (progress) => setUploadProgress(progress)
+        (progress) => {
+          setUploadProgress(progress);
+          // Show OCR modal when upload reaches 100% and file needs OCR
+          if (progress.progress >= 100 && needsOCR) {
+            setIsProcessingOCR(true);
+          }
+        }
       );
 
       // Reset form
@@ -87,12 +102,37 @@ const UploadForm: React.FC = () => {
     } finally {
       setIsUploading(false);
       setUploadProgress(null);
+      setIsProcessingOCR(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Upload Document</h2>
+    <>
+      {/* OCR Processing Modal Overlay */}
+      {isProcessingOCR && (
+        <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-sm w-full mx-4 p-6">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Processing Document
+              </h3>
+              <p className="text-sm text-gray-600 mb-2">
+                Extracting text from your document. Please wait...
+              </p>
+              <p className="text-sm text-blue-600 font-medium mb-4">
+                Estimated time: 3-5 minutes
+              </p>
+              <p className="text-xs text-gray-500">
+                Do not close this page during processing.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Upload Document</h2>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* File Upload */}
@@ -109,9 +149,35 @@ const UploadForm: React.FC = () => {
             required
           />
           {selectedFile && (
-            <p className="mt-2 text-sm text-gray-600">
-              Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-            </p>
+            <div className="mt-2">
+              <p className="text-sm text-gray-600">
+                Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
+              {(selectedFile.type === 'application/pdf' && selectedFile.size > 10 * 1024 * 1024) || selectedFile.type.startsWith('image/') ? (
+                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-blue-800">
+                        OCR Processing Required
+                      </h3>
+                      <div className="mt-1 text-sm text-blue-700">
+                        <p>This document will be processed with OCR (Optical Character Recognition) to extract searchable text.</p>
+                        <ul className="mt-1 list-disc list-inside space-y-1">
+                          <li>Processing time: 1-3 minutes</li>
+                          <li>All pages will be analyzed</li>
+                          <li>Multiple OCR passes for better accuracy</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           )}
         </div>
 
@@ -191,6 +257,8 @@ const UploadForm: React.FC = () => {
           />
         </div>
 
+       
+
         {/* Upload Progress */}
         {uploadProgress && (
           <div className="bg-gray-50 rounded-md p-4">
@@ -221,10 +289,11 @@ const UploadForm: React.FC = () => {
           disabled={isUploading || !selectedFile}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {isUploading ? 'Uploading...' : 'Upload Document'}
+          {isProcessingOCR ? 'Processing with OCR...' : isUploading ? 'Uploading...' : 'Upload Document'}
         </button>
       </form>
-    </div>
+      </div>
+    </>
   );
 };
 
