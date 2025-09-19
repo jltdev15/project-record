@@ -33,13 +33,20 @@ const DocumentList: React.FC = () => {
   const filterDocuments = () => {
     let filtered = documents;
 
-    // Filter by search term
+    // Filter by search term - now includes content search
     if (searchTerm) {
-      filtered = filtered.filter(doc =>
-        doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doc.referenceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doc.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(doc => {
+        // Search in metadata fields
+        const titleMatch = doc.title.toLowerCase().includes(searchLower);
+        const referenceMatch = doc.referenceNumber.toLowerCase().includes(searchLower);
+        const descriptionMatch = doc.description.toLowerCase().includes(searchLower);
+        
+        // Search in document content (if available)
+        const contentMatch = doc.content && doc.content.toLowerCase().includes(searchLower);
+        
+        return titleMatch || referenceMatch || descriptionMatch || contentMatch;
+      });
     }
 
     // Filter by document type
@@ -86,7 +93,7 @@ const DocumentList: React.FC = () => {
             </label>
             <input
               type="text"
-              placeholder="Search by title, reference number, or description..."
+              placeholder="Search by title, reference number, description, or document content..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"

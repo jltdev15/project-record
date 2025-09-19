@@ -2,6 +2,7 @@ import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebas
 import { ref as dbRef, push, get, query, orderByChild, remove, update } from 'firebase/database';
 import { storage, database, auth } from '../firebase/config';
 import { Document, UploadProgress } from '../types';
+import { TextExtractionService } from './textExtractionService';
 
 export class DocumentService {
   // Upload document to Firebase Storage
@@ -52,6 +53,19 @@ export class DocumentService {
             const actualStoragePath = uploadTask.snapshot.ref.fullPath;
             console.log('Upload completed. Storage path:', actualStoragePath);
             
+            // Extract text content from the document
+            let extractedContent = '';
+            if (TextExtractionService.isTextExtractable(file)) {
+              console.log('Extracting text content from document...');
+              try {
+                extractedContent = await TextExtractionService.extractText(file);
+                console.log('Text extraction completed. Content length:', extractedContent.length);
+              } catch (extractionError) {
+                console.warn('Text extraction failed:', extractionError);
+                // Continue with upload even if text extraction fails
+              }
+            }
+            
             const documentData: Omit<Document, 'id'> = {
               ...metadata,
               fileUrl: downloadURL,
@@ -59,7 +73,8 @@ export class DocumentService {
               fileSize: file.size,
               uploadedAt: new Date().toISOString(),
               uploadedBy: user.displayName,
-              storagePath: actualStoragePath // Use the actual storage path from Firebase
+              storagePath: actualStoragePath, // Use the actual storage path from Firebase
+              content: extractedContent // Add extracted text content
             };
 
             const docRef = await push(dbRef(database, 'documents'), documentData);
@@ -109,6 +124,7 @@ export class DocumentService {
     documentType?: string;
     dateFrom?: string;
     dateTo?: string;
+    content?: string;
   }): Promise<Document[]> {
     const documentsRef = dbRef(database, 'documents');
     let q = query(documentsRef, orderByChild('uploadedAt'));
@@ -142,6 +158,19 @@ export class DocumentService {
       
       if (filters.dateTo && new Date(doc.date) > new Date(filters.dateTo)) {
         matches = false;
+      }
+      
+      // Content search - search in extracted document content
+      if (filters.content && filters.content.trim()) {
+        const searchTerm = filters.content.toLowerCase().trim();
+        const contentMatch = doc.content && doc.content.toLowerCase().includes(searchTerm);
+        const titleMatch = doc.title.toLowerCase().includes(searchTerm);
+        const descriptionMatch = doc.description.toLowerCase().includes(searchTerm);
+        const referenceMatch = doc.referenceNumber.toLowerCase().includes(searchTerm);
+        
+        if (!contentMatch && !titleMatch && !descriptionMatch && !referenceMatch) {
+          matches = false;
+        }
       }
       
       if (matches) {

@@ -11,6 +11,7 @@ export interface Document {
   uploadedAt: string;
   uploadedBy: string;
   storagePath: string; // Add this field to store the actual storage path
+  content?: string; // Extracted text content for search
 }
 
 export interface User {

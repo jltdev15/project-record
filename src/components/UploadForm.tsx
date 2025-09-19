@@ -18,7 +18,8 @@ const UploadForm: React.FC = () => {
   });
 
   const documentTypes = [
-    'Memorandum',
+    'Syllabus',
+    'Class Program',
   ];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {

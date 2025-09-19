@@ -11,6 +11,7 @@ interface DocumentCardProps {
 
 const DocumentCard: React.FC<DocumentCardProps> = ({ document, onDelete }) => {
   const [showPreview, setShowPreview] = useState(false);
+  const [showContent, setShowContent] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
   const formatFileSize = (bytes: number) => {
@@ -104,6 +105,17 @@ const handleDownload = async () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
             </button>
+            {document.content && (
+              <button
+                onClick={() => setShowContent(true)}
+                className="text-purple-600 hover:text-purple-800 p-1"
+                title="View extracted content"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </button>
+            )}
             <button
               onClick={handleDownload}
               disabled={isDownloading}
@@ -148,6 +160,16 @@ const handleDownload = async () => {
             <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
               {formatFileSize(document.fileSize)}
             </span>
+            {/* Text extraction status indicator */}
+            {document.content ? (
+              <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full" title={`Content searchable (${document.content.length} characters)`}>
+                ✓ Searchable ({document.content.length} chars)
+              </span>
+            ) : (
+              <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full" title="Content not extracted">
+                ⚠ Metadata only
+              </span>
+            )}
           </div>
 
           <div className="text-xs text-gray-500 space-y-1">
@@ -162,6 +184,47 @@ const handleDownload = async () => {
           document={document}
           onClose={() => setShowPreview(false)}
         />
+      )}
+
+      {/* Content Preview Modal */}
+      {showContent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Extracted Content - {document.title}
+              </h3>
+              <button
+                onClick={() => setShowContent(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  <strong>Content Length:</strong> {document.content?.length || 0} characters
+                </p>
+                <div className="bg-white rounded border p-4 max-h-96 overflow-y-auto">
+                  <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono">
+                    {document.content || 'No content extracted'}
+                  </pre>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t bg-gray-50 rounded-b-lg">
+              <button
+                onClick={() => setShowContent(false)}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
