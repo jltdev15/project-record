@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 const LoginPage: React.FC = () => {
   const { signIn, signUp } = useAuth();
@@ -39,13 +39,14 @@ const LoginPage: React.FC = () => {
           setLoading(false);
           return;
         }
-        await signUp(formData.email, formData.password, formData.displayName);
+        await signUp(formData.email, formData.password);
       } else {
         await signIn(formData.email, formData.password);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Authentication error:', error);
-      setError(error.message || 'Authentication failed. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Authentication failed. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

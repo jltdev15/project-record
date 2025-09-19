@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { DocumentService } from '../services/documentService';
 import { Document } from '../types';
 import DocumentCard from './DocumentCard';
@@ -9,14 +9,6 @@ const DocumentList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [documentTypeFilter, setDocumentTypeFilter] = useState('');
-
-  useEffect(() => {
-    loadDocuments();
-  }, []);
-
-  useEffect(() => {
-    filterDocuments();
-  }, [documents, searchTerm, documentTypeFilter]);
 
   const loadDocuments = async () => {
     try {
@@ -30,7 +22,7 @@ const DocumentList: React.FC = () => {
     }
   };
 
-  const filterDocuments = () => {
+  const filterDocuments = useCallback(() => {
     let filtered = documents;
 
     // Filter by search term - now includes content search
@@ -55,7 +47,15 @@ const DocumentList: React.FC = () => {
     }
 
     setFilteredDocuments(filtered);
-  };
+  }, [documents, searchTerm, documentTypeFilter]);
+
+  useEffect(() => {
+    loadDocuments();
+  }, []);
+
+  useEffect(() => {
+    filterDocuments();
+  }, [filterDocuments]);
 
   const handleDeleteDocument = async (document: Document) => {
     if (window.confirm('Are you sure you want to delete this document?')) {

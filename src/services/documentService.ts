@@ -127,7 +127,7 @@ export class DocumentService {
     content?: string;
   }): Promise<Document[]> {
     const documentsRef = dbRef(database, 'documents');
-    let q = query(documentsRef, orderByChild('uploadedAt'));
+    const q = query(documentsRef, orderByChild('uploadedAt'));
 
     const snapshot = await get(q);
     

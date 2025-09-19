@@ -9,7 +9,7 @@ try {
     'pdfjs-dist/build/pdf.worker.min.js',
     import.meta.url
   ).toString();
-} catch (error) {
+} catch {
   // Fallback to CDN if local worker fails
   pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 }
@@ -73,7 +73,7 @@ export class TextExtractionService {
    * Extract text from PDF files using PDF.js
    */
   private static async extractFromPDF(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const reader = new FileReader();
       
       reader.onload = async () => {
@@ -104,13 +104,10 @@ export class TextExtractionService {
               
               // More detailed text extraction
               const pageText = textContent.items
-                .map((item: any) => {
+                .map((item) => {
                   // Handle different text item types
-                  if (item.str) {
+                  if ('str' in item && item.str) {
                     return item.str;
-                  } else if (item.transform) {
-                    // Handle transformed text
-                    return item.str || '';
                   }
                   return '';
                 })
@@ -122,8 +119,8 @@ export class TextExtractionService {
               if (pageText.length < 50) { // If we got very little text, try alternative method
                 try {
                   const textItems = textContent.items
-                    .filter((item: any) => item.str && item.str.trim().length > 0)
-                    .map((item: any) => item.str);
+                    .filter((item) => 'str' in item && item.str && item.str.trim().length > 0)
+                    .map((item) => 'str' in item ? item.str : '');
                   
                   alternativeText = textItems.join(' ');
                   console.log(`Alternative extraction for page ${pageNum}: ${alternativeText.length} characters`);
@@ -171,7 +168,7 @@ export class TextExtractionService {
    * Extract text from Word documents (.docx, .doc)
    */
   private static async extractFromWord(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const reader = new FileReader();
       
       reader.onload = async () => {
@@ -207,7 +204,7 @@ export class TextExtractionService {
    * Extract text from Excel files (.xlsx, .xls)
    */
   private static async extractFromExcel(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const reader = new FileReader();
       
       reader.onload = async () => {
@@ -234,8 +231,7 @@ export class TextExtractionService {
               if (worksheet) {
                 // Try different extraction methods
                 const sheetData = XLSX.utils.sheet_to_txt(worksheet, { 
-                  blankrows: false, // Skip blank rows
-                  defval: '' // Default value for empty cells
+                  blankrows: false // Skip blank rows
                 });
                 
                 if (sheetData.trim().length > 0) {
