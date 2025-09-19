@@ -93,7 +93,7 @@ const DocumentList: React.FC = () => {
             </label>
             <input
               type="text"
-              placeholder="Search by title, reference number, description, or document content..."
+              placeholder="Search by context or content"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
